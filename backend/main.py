@@ -128,8 +128,8 @@ async def get_report(
             detail=f"Failed to connect to ClickHouse: {str(e)}"
         )
     
-    # Формируем SQL запрос
-    query = f"""
+    # Формируем SQL запрос с параметрами для безопасности
+    query = """
     SELECT 
         user_id,
         email,
@@ -150,20 +150,27 @@ async def get_report(
         order_date,
         processed_at
     FROM reports_mart
-    WHERE user_id = '{user_id}'
+    WHERE user_id = {user_id:String}
     """
     
     # Добавляем фильтры по датам, если указаны
     if start_date:
-        query += f" AND report_date >= '{start_date}'"
+        query += " AND report_date >= {start_date:Date}"
     if end_date:
-        query += f" AND report_date <= '{end_date}'"
+        query += " AND report_date <= {end_date:Date}"
     
     query += " ORDER BY report_date DESC, prosthesis_id"
     
+    # Параметры для запроса
+    parameters = {'user_id': user_id}
+    if start_date:
+        parameters['start_date'] = start_date
+    if end_date:
+        parameters['end_date'] = end_date
+    
     try:
-        # Выполняем запрос
-        result = client.query(query)
+        # Выполняем запрос с параметрами
+        result = client.query(query, parameters=parameters)
         
         # Преобразуем результат в список словарей
         columns = result.column_names
