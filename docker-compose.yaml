@@ -21,6 +21,7 @@ services:
     command: 
       - start-dev
       - --import-realm
+      - --import-realm-overwrite
     volumes:
       - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
     ports:
@@ -65,6 +66,7 @@ services:
     image: clickhouse/clickhouse-server:latest
     volumes:
       - ./clickhouse-data:/var/lib/clickhouse
+      - ./clickhouse/users.xml:/etc/clickhouse-server/users.d/custom-users.xml
     ports:
       - "8123:8123"
       - "9001:9000"

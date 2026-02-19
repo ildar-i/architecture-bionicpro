@@ -5,6 +5,7 @@ Reports API для BionicPRO
 from fastapi import FastAPI, HTTPException, Depends, Security
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.middleware.cors import CORSMiddleware
 import clickhouse_connect
 import jwt
 import requests
@@ -14,6 +15,15 @@ import io
 import csv
 
 app = FastAPI(title="BionicPRO Reports API", version="1.0.0")
+
+# Настройка CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Конфигурация
 KEYCLOAK_URL = "http://keycloak:8080"
@@ -116,11 +126,12 @@ async def get_report(
     
     # Подключение к ClickHouse
     try:
+        # Для ClickHouse без пароля используем пустую строку или None
         client = clickhouse_connect.get_client(
             host=CLICKHOUSE_HOST,
             port=CLICKHOUSE_PORT,
             username=CLICKHOUSE_USER,
-            password=CLICKHOUSE_PASSWORD
+            password=CLICKHOUSE_PASSWORD if CLICKHOUSE_PASSWORD else ""
         )
     except Exception as e:
         raise HTTPException(
