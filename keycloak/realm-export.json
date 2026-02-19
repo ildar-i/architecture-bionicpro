@@ -120,7 +120,8 @@
         "standardFlowEnabled": true,
         "implicitFlowEnabled": false,
         "attributes": {
-          "pkce.code.challenge.method": "S256"
+          "pkce.code.challenge.method": "S256",
+          "pkce.code.challenge.method.required": "false"
         },
         "protocol": "openid-connect",
         "defaultClientScopes": ["web-origins", "role_list", "profile", "roles", "email"],

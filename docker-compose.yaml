@@ -106,6 +106,28 @@ services:
       timeout: 5s
       retries: 5
 
+  # Airflow Init (одноразовая инициализация)
+  airflow_init:
+    build:
+      context: ./airflow
+      dockerfile: Dockerfile
+    entrypoint: /bin/bash
+    command: -c "airflow db init && airflow users create --username admin --firstname Admin --lastname User --role Admin --email admin@example.com --password admin || true"
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow_user:airflow_password@airflow_db:5432/airflow_db
+      AIRFLOW__CORE__FERNET_KEY: ''
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/plugins:/opt/airflow/plugins
+    depends_on:
+      airflow_db:
+        condition: service_healthy
+    restart: "no"
+
   # Airflow Webserver
   airflow_webserver:
     build:
@@ -127,8 +149,12 @@ services:
     ports:
       - "8082:8080"
     depends_on:
-      - airflow_db
-      - airflow_scheduler
+      airflow_db:
+        condition: service_healthy
+      airflow_init:
+        condition: service_completed_successfully
+      airflow_scheduler:
+        condition: service_started
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
       interval: 30s
@@ -152,9 +178,14 @@ services:
       - ./airflow/logs:/opt/airflow/logs
       - ./airflow/plugins:/opt/airflow/plugins
     depends_on:
-      - airflow_db
-      - postgres
-      - clickhouse
+      airflow_db:
+        condition: service_healthy
+      airflow_init:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+      clickhouse:
+        condition: service_started
     healthcheck:
       test: ["CMD-SHELL", "airflow jobs check --job-type SchedulerJob --hostname $$(hostname)"]
       interval: 30s
