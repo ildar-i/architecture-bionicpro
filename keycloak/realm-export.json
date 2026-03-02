@@ -116,7 +116,13 @@
         "publicClient": true,
         "redirectUris": ["http://localhost:3000/*"],
         "webOrigins": ["http://localhost:3000"],
-        "directAccessGrantsEnabled": true
+        "directAccessGrantsEnabled": true,
+        "standardFlowEnabled": true,
+        "implicitFlowEnabled": false,
+        "attributes": {},
+        "protocol": "openid-connect",
+        "defaultClientScopes": ["web-origins", "role_list", "profile", "roles", "email"],
+        "optionalClientScopes": ["address", "phone", "offline_access", "microprofile-jwt"]
       },
       {
         "clientId": "reports-api",

@@ -9,11 +9,20 @@ const keycloakConfig: KeycloakConfig = {
   clientId: process.env.REACT_APP_KEYCLOAK_CLIENT_ID||""
 };
 
+// Keycloak JS автоматически использует PKCE для public clients
+// PKCE включается автоматически в версии 21.1.0+
 const keycloak = new Keycloak(keycloakConfig);
 
 const App: React.FC = () => {
   return (
-    <ReactKeycloakProvider authClient={keycloak}>
+    <ReactKeycloakProvider 
+      authClient={keycloak}
+      initOptions={{
+        pkceMethod: 'S256',
+        checkLoginIframe: false,
+        onLoad: 'check-sso'
+      }}
+    >
       <div className="App">
         <ReportPage />
       </div>
